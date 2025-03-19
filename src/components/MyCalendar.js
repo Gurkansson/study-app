@@ -130,7 +130,6 @@ const MyCalendar = () => {
         }
     };
     
-    
 
     return (
         <div className="calendar-wrapper">
