@@ -29,16 +29,16 @@ const MyCalendar = () => {
         console.log("Hämtar uppgifter från Firestore...");
         const querySnapshot = await getDocs(collection(db, "tasks"));
         const loadedTasks = {};
-    
+        
         querySnapshot.forEach((doc) => {
             const task = doc.data();
             console.log("Datum hämtat från Firebase:", task.date);
     
-            // Justera tidszon och säkerställ att vi tolkar datumet korrekt
+            // Se till att datumet är i korrekt format
             const utcDate = new Date(task.date);
-            utcDate.setMinutes(utcDate.getMinutes() + utcDate.getTimezoneOffset()); // Återställ lokal tid
+            utcDate.setHours(0, 0, 0, 0); // Säkerställ att tiden inte påverkar jämförelsen
     
-            const formattedDate = utcDate.toISOString().split("T")[0]; // YYYY-MM-DD
+            const formattedDate = utcDate.toISOString().split("T")[0];
     
             if (!loadedTasks[formattedDate]) {
                 loadedTasks[formattedDate] = [];
@@ -46,8 +46,10 @@ const MyCalendar = () => {
             loadedTasks[formattedDate].push({ id: doc.id, ...task });
         });
     
+        console.log("Hämtade uppgifter:", loadedTasks);  // Debugging
         setTasks(loadedTasks);
     };
+    
     
     
     
@@ -63,9 +65,10 @@ const MyCalendar = () => {
     };
 
     const openTaskView = (task = null) => {
+        console.log("openTaskView kördes!"); // Kontrollera om funktionen körs
         setIsEditing(true);
         setSelectedTask(task);
-
+    
         if (task) {
             setNewTask(task.text);
             setReminderTime(task.time);
@@ -79,8 +82,10 @@ const MyCalendar = () => {
             setReminderEnabled(false);
         }
     };
+    
 
     const closeTaskView = () => {
+        console.log("Stänger task-view...");  // Debugging för att säkerställa att funktionen anropas
         setIsEditing(false);
     };
 
@@ -107,28 +112,31 @@ const MyCalendar = () => {
             return;
         }
     
-        // Justera genom att ta UTC-datumet och konvertera tillbaka till lokal tid
         const localDate = new Date(selectedDate);
-        localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset()); // Justering av tidszon
+        localDate.setHours(0, 0, 0, 0); // Nollställ tid
+        localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset()); // Hantera tidszon
     
-        const dateString = localDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        const dateString = localDate.toISOString().split("T")[0]; // Format: YYYY-MM-DD
     
-        console.log("Datum som sparas i Firebase efter fix:", dateString);
+        console.log("Datum som sparas i Firebase:", dateString);
     
         const taskData = {
             task: newTask,
-            date: dateString
+            date: dateString // Datum i korrekt format
         };
     
         try {
             const docRef = await addDoc(collection(db, "tasks"), taskData);
-            console.log("✅ Uppgift sparad med ID: ", docRef.id);
-            await fetchTasks();
-            closeTaskView(); 
+            console.log("Uppgift sparad med ID:", docRef.id);
+            await fetchTasks(); // Hämta om uppgifterna efter att en ny lagts till
+            closeTaskView();
         } catch (error) {
-            console.error("🔥 Fel vid sparande:", error);
+            console.error("Fel vid sparande:", error);
         }
     };
+    
+    
+
     
 
     return (
@@ -159,6 +167,7 @@ const MyCalendar = () => {
             {/* Task view for adding/editing tasks */}
             {isEditing && (
                 <div className="task-view">
+                    {console.log("isEditing är true, renderar task-view")}
                     <h3>{selectedTask ? "Redigera uppgift" : "Lägg till uppgift"}</h3>
 
                     {/* Task text */}
@@ -200,10 +209,8 @@ const MyCalendar = () => {
                     />
 
                     {/* Save button */}
-                    <button onClick={() => { 
-                        console.log("Knappen klickades!"); 
-                        saveTask(); 
-                    }}>✅ Spara</button>
+                    <button onClick={saveTask}>✅ Spara</button>
+
 
                     {/* Delete button if task is selected */}
                     {selectedTask && <button onClick={deleteTask}>🗑️ Ta bort</button>}
