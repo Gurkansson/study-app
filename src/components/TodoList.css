@@ -1,0 +1,175 @@
+.todo-container {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 350px;
+    margin-top: 20px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;  /* Säkerställ att båda är vertikalt centrerade */
+    margin-bottom: 20px;
+}
+
+.add-task-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.add-btn {
+    background-color: #4a90e2;
+    color: white;
+    padding: 15px;  /* Öka storleken */
+    border-radius: 50%;
+    font-size: 36px;  /* Gör ikonen större */
+    width: 70px;  /* Gör knappen större */
+    height: 70px;  /* Gör knappen större */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-btn:hover {
+    background-color: #357ABD;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 400px;
+}
+
+.color-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.color-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.popup-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.popup-buttons button {
+    width: 45%;
+    padding: 10px;
+}
+
+.save-btn {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #e0e0e0;
+}
+
+.todo-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.todo-item {
+    display: flex;
+    justify-content: space-between;  /* Se till att innehållet är ordnat på rätt sätt */
+    align-items: center;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin: 5px 0;
+    position: relative;
+}
+
+.task-text {
+    flex: 1;  /* Gör så att texten fyller utrymmet */
+    word-wrap: break-word;
+}
+
+.task-checkbox {
+    order: 1;  /* Gör så att checkboxen kommer först */
+    margin-right: 10px;  /* Litet mellanrum mellan checkbox och text */
+}
+
+.delete-btn {
+    order: 2;  /* Gör så att delete-knappen kommer sist */
+    background-color: transparent;  /* Inget bakgrundsfärg */
+    border: none;
+    color: red;
+    font-size: 18px;  /* Större fontstorlek om det behövs */
+    padding: 0;  /* Ta bort all padding */
+    margin-left: 10px;  /* Litet mellanrum mellan delete-knappen och texten */
+    width: auto;  /* Se till att bredden är justerbar beroende på innehåll */
+    height: auto;  /* Se till att höjden är justerbar beroende på innehåll */
+    display: flex;
+    justify-content: center;  /* Se till att krysset är centrerat */
+    align-items: center;  /* Centrerar även på vertikal nivå */
+}
+
+
+/* Justera så att både checkbox och delete-knapp placeras på samma rad */
+.todo-item .task-checkbox,
+.todo-item .delete-btn {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+
+/*
+.todo-item .task-checkbox {
+    margin-left: auto;  Skjut checkboxen så långt till höger som möjligt 
+}*/
+
+
+
+
+
+
+.progress-bar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress-bar-text {
+    position: absolute;
+    font-size: 20px;  /* Justera storleken på texten */
+    color: #2196F3;  /* Samma färg som progressbågen */
+    font-weight: bold;
+}

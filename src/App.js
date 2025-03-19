@@ -1,24 +1,32 @@
-import logo from './logo.svg';
+import React from "react";
+import ToggleMenu from "./components/ToggleMenu";
 import './App.css';
 
+
+import { messaging, getToken } from "./firebase";
+import { useEffect } from "react";
+
 function App() {
+  useEffect(() => {
+      Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+              getToken(messaging, { vapidKey: "DIN_VAPID_KEY" })
+                  .then((currentToken) => {
+                      if (currentToken) {
+                          console.log("FCM Token:", currentToken);
+                      } else {
+                          console.log("Ingen token erhölls.");
+                      }
+                  })
+                  .catch((err) => console.log("FCM Token-fel:", err));
+          }
+      });
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div>
+          <ToggleMenu />
+      </div>
   );
 }
 
