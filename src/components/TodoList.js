@@ -77,35 +77,36 @@ const ToDoList = () => {
 
     return (
         <div className="todo-container">
-            <h2>📝 Min To-Do Lista</h2>
+            <h2>Min To-Do Lista</h2>
 
             <div className="container-header">
-                <div className="progress-container">
-                    <div className="progress-bar-container">
-                        <svg width="120" height="120">
-                            <circle cx="60" cy="60" r="50" stroke="#e0e0e0" strokeWidth="10" fill="none" />
-                            <circle
-                                cx="60"
-                                cy="60"
-                                r="50"
-                                stroke="#2196F3"
-                                strokeWidth="10"
-                                fill="none"
-                                strokeDasharray="314"
-                                strokeDashoffset={314 - (progress / 100) * 314}
-                                strokeLinecap="round"
-                                style={{ transition: "stroke-dashoffset 0.5s ease-in-out" }}
-                            />
-                        </svg>
-                        <div className="progress-bar-text">{Math.round(progress)}%</div>
-                    </div>
-                    <div className="text-below">Dagens progress</div>
-                </div>
-                <div className="add-task-container">
-                    <button className="add-btn" onClick={() => setShowPopup(true)}>➕</button>
-                    <div className="text-below">Lägg till uppgift</div>
-                </div>
-            </div>
+    <div className="progress-container">
+        <div className="progress-bar-container">
+            <svg width="120" height="120">
+                <circle cx="60" cy="60" r="50" stroke="#e0e0e0" strokeWidth="10" fill="none" />
+                <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    stroke="#2196F3"
+                    strokeWidth="10"
+                    fill="none"
+                    strokeDasharray="314"
+                    strokeDashoffset={314 - (progress / 100) * 314}
+                    strokeLinecap="round"
+                    style={{ transition: "stroke-dashoffset 0.5s ease-in-out" }}
+                />
+            </svg>
+            <div className="progress-bar-text">{Math.round(progress)}%</div>
+        </div>
+        <div className="text-below">Dagens progress</div>
+    </div>
+    <div className="add-task-container">
+        <button className="add-btn" onClick={() => setShowPopup(true)}>➕</button>
+        <div className="text-below">Lägg till uppgift</div>
+    </div>
+</div>
+
 
             {showPopup && (
                 <div className="popup-overlay">

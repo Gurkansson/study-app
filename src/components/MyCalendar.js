@@ -1,222 +1,149 @@
 import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "./Calendar.css";
 import { db } from "../firebase";
 import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import "./Popup.css";
+
+const Button = ({ children, ...props }) => (
+    <button {...props} className="bg-blue-500 text-white py-3 px-6 rounded-lg text-lg shadow-md hover:bg-blue-600 transition-all">{children}</button>
+);
+
+const Card = ({ children, onClick }) => (
+    <div className="bg-white shadow-lg rounded-xl p-4 mb-2 cursor-pointer hover:bg-gray-100 transition-all" onClick={onClick}>{children}</div>
+);
+
+const Input = (props) => <input {...props} className="border p-3 rounded-lg w-full text-lg" />;
 
 const MyCalendar = () => {
     const [date, setDate] = useState(new Date());
     const [tasks, setTasks] = useState({});
     const [newTask, setNewTask] = useState("");
-    const [reminderTime, setReminderTime] = useState("");
+    const [activityTime, setActivityTime] = useState("");
     const [reminderEnabled, setReminderEnabled] = useState(false);
+    const [reminderDate, setReminderDate] = useState("");
+    const [reminderTime, setReminderTime] = useState("");
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [isEditing, setIsEditing] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
-    const [activeStartDate, setActiveStartDate] = useState(new Date());
-
-    // Hjälpfunktion för att kontrollera om ett datum är giltigt
-    const isValidDate = (date) => date instanceof Date && !isNaN(date);
 
     const goToToday = () => {
-        const today = new Date();
-        setDate(today);
-        setActiveStartDate(today);
+        setDate(new Date());
     };
 
     const fetchTasks = async () => {
-        console.log("Hämtar uppgifter från Firestore...");
         const querySnapshot = await getDocs(collection(db, "tasks"));
         const loadedTasks = {};
-        
         querySnapshot.forEach((doc) => {
             const task = doc.data();
-            console.log("Datum hämtat från Firebase:", task.date);
-    
-            // Se till att datumet är i korrekt format
-            const utcDate = new Date(task.date);
-            utcDate.setHours(0, 0, 0, 0); // Säkerställ att tiden inte påverkar jämförelsen
-    
-            const formattedDate = utcDate.toISOString().split("T")[0];
-    
-            if (!loadedTasks[formattedDate]) {
-                loadedTasks[formattedDate] = [];
-            }
+            const formattedDate = new Date(task.date).toISOString().split("T")[0];
+            if (!loadedTasks[formattedDate]) loadedTasks[formattedDate] = [];
             loadedTasks[formattedDate].push({ id: doc.id, ...task });
         });
-    
-        console.log("Hämtade uppgifter:", loadedTasks);  // Debugging
         setTasks(loadedTasks);
     };
-    
-    
-    
-    
 
-    // Uppdatera datum när användaren ändrar datum i kalendern
-    const handleDateChange = (selectedDate) => {
-        if (selectedDate instanceof Date && !isNaN(selectedDate)) {
-            setDate(selectedDate);        // Uppdatera kalenderns aktuella datum
-            setSelectedDate(selectedDate); // Uppdatera det valda datumet för uppgifterna
-        } else {
-            console.error("Ogiltigt datum valt:", selectedDate);
-        }
-    };
+    useEffect(() => {
+        fetchTasks();
+    }, []);
 
     const openTaskView = (task = null) => {
-        console.log("openTaskView kördes!"); // Kontrollera om funktionen körs
-        setIsEditing(true);
         setSelectedTask(task);
-    
         if (task) {
-            setNewTask(task.text);
-            setReminderTime(task.time);
-            setSelectedDate(new Date(task.date));
+            setNewTask(task.task);
+            setActivityTime(task.activityTime || "");
             setReminderEnabled(task.reminderEnabled);
+            setReminderDate(task.reminderDate || "");
+            setReminderTime(task.reminderTime || "");
+            setSelectedDate(new Date(task.date));
         } else {
-            const today = new Date();
             setNewTask("");
-            setReminderTime("");
-            setSelectedDate(today);
+            setActivityTime("");
             setReminderEnabled(false);
+            setReminderDate("");
+            setReminderTime("");
+            setSelectedDate(date);
         }
+        setShowPopup(true);
     };
-    
 
     const closeTaskView = () => {
-        console.log("Stänger task-view...");  // Debugging för att säkerställa att funktionen anropas
-        setIsEditing(false);
-    };
-
-    const deleteTask = async () => {
-        if (!selectedTask) return;
-        try {
-            await deleteDoc(doc(db, "tasks", selectedTask.id));
-            setTasks((prevTasks) => {
-                const updatedTasks = { ...prevTasks };
-                updatedTasks[selectedTask.date] = updatedTasks[selectedTask.date].filter((t) => t.id !== selectedTask.id);
-                return updatedTasks;
-            });
-        } catch (error) {
-            console.error("Error deleting task:", error);
-        }
-        closeTaskView();
+        setShowPopup(false);
     };
 
     const saveTask = async () => {
-        console.log("Sparar uppgift...");
-    
-        if (!newTask.trim()) {
-            console.error("Uppgiftstext saknas!");
-            return;
+        if (!newTask.trim()) return;
+        const dateString = selectedDate.toISOString().split("T")[0];
+        const taskData = { task: newTask, date: dateString, activityTime, reminderEnabled, reminderDate, reminderTime };
+        if (selectedTask) {
+            await deleteDoc(doc(db, "tasks", selectedTask.id));
         }
-    
-        const localDate = new Date(selectedDate);
-        localDate.setHours(0, 0, 0, 0); // Nollställ tid
-        localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset()); // Hantera tidszon
-    
-        const dateString = localDate.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-    
-        console.log("Datum som sparas i Firebase:", dateString);
-    
-        const taskData = {
-            task: newTask,
-            date: dateString // Datum i korrekt format
-        };
-    
-        try {
-            const docRef = await addDoc(collection(db, "tasks"), taskData);
-            console.log("Uppgift sparad med ID:", docRef.id);
-            await fetchTasks(); // Hämta om uppgifterna efter att en ny lagts till
-            closeTaskView();
-        } catch (error) {
-            console.error("Fel vid sparande:", error);
-        }
+        await addDoc(collection(db, "tasks"), taskData);
+        fetchTasks();
+        closeTaskView();
     };
-    
-    
-
-    
 
     return (
-        <div className="calendar-wrapper">
-            <h2>Min Kalender</h2>
-            <div className="calendar-container">
-                <div className="button-container">
-                    <button onClick={goToToday}>📅 Gå till idag</button>
-                    <button onClick={openTaskView}>➕ Lägg till uppgift</button>
+        <div className="p-8 bg-gray-100 min-h-screen flex flex-col items-center space-y-6">
+            <h2 className="text-3xl font-bold">Min Kalender</h2>
+            <div className="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+                <div className="flex justify-between mb-6">
+                    <Button onClick={goToToday}>📅 Idag</Button>
+                    <Button onClick={() => openTaskView()}>➕ Ny</Button>
                 </div>
-
-                <Calendar
-                    onChange={handleDateChange}  // Använd den nya handleDateChange här
-                    value={date}
-                    activeStartDate={activeStartDate}
-                    onActiveStartDateChange={({ activeStartDate }) => setActiveStartDate(activeStartDate)}
+                <Calendar 
+                    onChange={setDate} 
+                    value={date} 
+                    className="rounded-lg w-full" 
+                    tileContent={({ date }) => {
+                        const formattedDate = date.toISOString().split("T")[0];
+                        return tasks[formattedDate] ? (
+                            <div className="text-xs text-blue-600">{tasks[formattedDate][0].task.slice(0, 5)}...</div>
+                        ) : null;
+                    }}
                 />
             </div>
+            
+            {tasks[date.toISOString().split("T")[0]] && (
+                <div className="w-full max-w-2xl bg-white p-4 mt-4 rounded-xl shadow-md">
+                    <h3 className="text-xl font-semibold mb-2">Uppgifter för {date.toISOString().split("T")[0]}</h3>
+                    {tasks[date.toISOString().split("T")[0]].map((task) => (
+                        <Card key={task.id} onClick={() => openTaskView(task)}>
+                            <p>
+                                {task.task} {task.activityTime && `- ${task.activityTime}`} 
+                                {task.reminderEnabled && <span className="ml-2">⏰</span>}
+                            </p>
+                        </Card>
+                    ))}
+                </div>
+            )}
 
-            <ul>
-                {(tasks[date.toISOString().split("T")[0]] || []).map((task, index) => (
-                    <li key={task.id || index}>
-                        {task.task}
-                    </li>
-                ))}
-            </ul>
-
-            {/* Task view for adding/editing tasks */}
-            {isEditing && (
-                <div className="task-view">
-                    {console.log("isEditing är true, renderar task-view")}
-                    <h3>{selectedTask ? "Redigera uppgift" : "Lägg till uppgift"}</h3>
-
-                    {/* Task text */}
-                    <input
-                        type="text"
-                        placeholder="Skriv uppgift..."
-                        value={newTask}
-                        onChange={(e) => setNewTask(e.target.value)} // Uppdatera uppgiftstext
-                    />
-
-                    {/* Reminder */}
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={reminderEnabled}
-                            onChange={() => setReminderEnabled(!reminderEnabled)} // Toggle reminder
-                        />
-                        Lägg till påminnelse
-                    </label>
-
-                    {/* Reminder time if reminder is enabled */}
-                    {reminderEnabled && (
-                        <div>
-                            <label>Välj påminnelsetid:</label>
-                            <input
-                                type="time"
-                                value={reminderTime}
-                                onChange={(e) => setReminderTime(e.target.value)} // Uppdatera påminnelse tid
-                            />
+            {showPopup && (
+                <div className="popup-overlay">
+                    <div className="popup">
+                        <h3>{selectedTask ? "Redigera uppgift" : "Lägg till uppgift"}</h3>
+                        <Input value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Titel på uppgift" className="mb-4" />
+                        <label className="block mb-2">Välj datum:</label>
+                        <Input type="date" value={selectedDate.toISOString().split("T")[0]} onChange={(e) => setSelectedDate(new Date(e.target.value))} className="mb-4" />
+                        <label className="block mb-2">Välj klockslag (valfritt):</label>
+                        <Input type="time" value={activityTime} onChange={(e) => setActivityTime(e.target.value)} className="mb-4" />
+                        <label className="flex items-center mb-4">
+                            <input type="checkbox" checked={reminderEnabled} onChange={() => setReminderEnabled(!reminderEnabled)} className="mr-2" />
+                            Lägg till påminnelse
+                        </label>
+                        {reminderEnabled && (
+                            <div className="mb-4">
+                                <label className="block mb-2">Påminnelsedatum:</label>
+                                <Input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} className="mb-4" />
+                                <label className="block mb-2">Påminnelse klockslag:</label>
+                                <Input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className="mb-4" />
+                            </div>
+                        )}
+                        <div className="popup-buttons">
+                            <button className="cancel-btn" onClick={closeTaskView}>❌ Avbryt</button>
+                            <button className="save-btn" onClick={saveTask}>✔ Spara</button>
                         </div>
-                    )}
-
-                    {/* Date picker */}
-                    <label>Välj datum:</label>
-                    <input
-                        type="date"
-                        value={isValidDate(selectedDate) ? selectedDate.toISOString().split("T")[0] : ""}
-                        onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                    />
-
-                    {/* Save button */}
-                    <button onClick={saveTask}>✅ Spara</button>
-
-
-                    {/* Delete button if task is selected */}
-                    {selectedTask && <button onClick={deleteTask}>🗑️ Ta bort</button>}
-
-                    {/* Close button */}
-                    <button onClick={closeTaskView}>❌ Avbryt</button>
+                    </div>
                 </div>
             )}
         </div>
