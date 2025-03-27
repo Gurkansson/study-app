@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { db } from "../firebase"; // Importera bara db, inte app
+import { db } from "../firebase"; 
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import "./TodoList.css";
 import { auth } from "../firebase";
@@ -24,7 +24,7 @@ const ToDoList = ({ user }) => {
           loadedTasks.push({ id: doc.id, ...task });
         });
       
-        setTasks(loadedTasks); // ✅ nu en array, fungerar med filter/map
+        setTasks(loadedTasks); 
       };
       
 
@@ -40,7 +40,7 @@ const ToDoList = ({ user }) => {
                 text: newTask,
                 completed: false,
                 color: selectedColor,
-                uid: user.uid, // 🔐 koppla till användaren
+                uid: user.uid, 
               });
             setTasks([...tasks, { id: docRef.id, text: newTask, completed: false, color: selectedColor }]);
             setNewTask("");

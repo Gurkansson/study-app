@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import "./Popup.css";
 
-
 const Button = ({ children, ...props }) => (
   <button
     {...props}
@@ -35,8 +34,8 @@ const Input = (props) => (
 );
 
 const MyCalendar = ({ user }) => {
+  const [isNewTask, setIsNewTask] = useState(false); // ✅ NYTT: flyttad hit
   const [activeStartDate, setActiveStartDate] = useState(new Date());
-
   const [date, setDate] = useState(new Date());
   const [tasks, setTasks] = useState({});
   const [newTask, setNewTask] = useState("");
@@ -53,53 +52,43 @@ const MyCalendar = ({ user }) => {
     const today = new Date();
     setDate(today);
     setSelectedDate(today);
-    setActiveStartDate(new Date(today.getFullYear(), today.getMonth(), 1)); // 🔥 detta scrollar till rätt månad
+    setActiveStartDate(new Date(today.getFullYear(), today.getMonth(), 1));
     setShowPopup(false);
   };
-  
-  
 
   const fetchTasks = async () => {
     if (!user || !user.uid) return;
-  
     try {
       const querySnapshot = await getDocs(collection(db, "tasks"));
       const loadedTasks = {};
-  
+
       querySnapshot.forEach((docSnap) => {
         const task = docSnap.data();
         if (task.uid !== user.uid) return;
-  
-        const formattedDate = task.date; // Använd direkt om det redan är en string i rätt format
-        console.log("🔥 Hämtad task:", task, "📅 Datum:", formattedDate);
-  
+
+        const formattedDate = task.date;
         if (!loadedTasks[formattedDate]) {
           loadedTasks[formattedDate] = [];
         }
-  
+
         loadedTasks[formattedDate].push({ id: docSnap.id, ...task });
       });
-  
-      console.log("✅ Loaded tasks färdig:", loadedTasks);
+
       setTasks(loadedTasks);
     } catch (error) {
       console.error("🔥 Fel vid fetchTasks:", error.code, error.message);
     }
   };
-  
-  
-  
-  
+
   useEffect(() => {
     if (user && user.uid) {
-      fetchTasks() ;
-      
+      fetchTasks();
     }
   }, [user]);
-  
 
   const openTaskView = (task = null) => {
     setSelectedTask(task);
+    setIsNewTask(task === null);
     if (task) {
       setNewTask(task.task);
       setActivityTime(task.activityTime || "");
@@ -113,6 +102,7 @@ const MyCalendar = ({ user }) => {
       setReminderEnabled(false);
       setReminderDate("");
       setReminderTime("");
+      setSelectedDate(date);
     }
     setShowPopup(true);
   };
@@ -120,6 +110,7 @@ const MyCalendar = ({ user }) => {
   const closeTaskView = () => {
     setShowPopup(false);
     setSelectedTask(null);
+    setIsNewTask(false);
   };
 
   const deleteTask = async () => {
@@ -175,44 +166,45 @@ const MyCalendar = ({ user }) => {
         </div>
 
         <Calendar
-  onChange={setDate}
-  value={date}
-  activeStartDate={activeStartDate}
-  onActiveStartDateChange={({ activeStartDate }) => setActiveStartDate(activeStartDate)}
-  onClickDay={(value) => {
-    const clickedDate = value.toISOString().split("T")[0];
-    if (tasks[clickedDate]) {
-      setSelectedDate(value);
-      setSelectedTask(null);
-      setShowPopup(true);
-    }
-  }}
-  tileContent={({ date, view }) => {
-    const formattedDate = date.toISOString().split("T")[0];
-    const dayTasks = tasks[formattedDate];
-    if (!dayTasks || dayTasks.length === 0) return null;
-    return (
-      <div className="calendar-tasks">
-        {dayTasks.map((task, i) => (
-          <div key={i} className="calendar-task-preview">
-            {task.task?.slice(0, 6)}...
-          </div>
-        ))}
-      </div>
-    );
-  }}
-/>
-
-
+          onChange={setDate}
+          value={date}
+          activeStartDate={activeStartDate}
+          onActiveStartDateChange={({ activeStartDate }) =>
+            setActiveStartDate(activeStartDate)
+          }
+          onClickDay={(value) => {
+            const clickedDate = value.toISOString().split("T")[0];
+            if (tasks[clickedDate]) {
+              setSelectedDate(value);
+              setSelectedTask(null);
+              setShowPopup(true);
+              setIsNewTask(false);
+            }
+          }}
+          tileContent={({ date, view }) => {
+            const formattedDate = date.toISOString().split("T")[0];
+            const dayTasks = tasks[formattedDate];
+            if (!dayTasks || dayTasks.length === 0) return null;
+            return (
+              <div className="calendar-tasks">
+                {dayTasks.map((task, i) => (
+                  <div key={i} className="calendar-task-preview">
+                    {task.task?.slice(0, 6)}...
+                  </div>
+                ))}
+              </div>
+            );
+          }}
+        />
       </div>
 
       {showPopup && (
         <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="popup bg-white p-6 rounded-xl shadow-lg w-96">
-            {selectedTask ? (
+            {selectedTask || isNewTask ? (
               <>
                 <h3 className="text-2xl font-bold text-center mb-4">
-                  Redigera uppgift
+                  {isNewTask ? "Ny uppgift" : "Redigera uppgift"}
                 </h3>
 
                 <label className="block text-lg font-semibold">Titel</label>
@@ -287,12 +279,15 @@ const MyCalendar = ({ user }) => {
                 <div className="flex justify-between">
                   <Button onClick={closeTaskView}>❌ Avbryt</Button>
                   <Button onClick={saveTask}>✔ Spara</Button>
-                  <Button onClick={deleteTask} className="mt-4 bg-red-500">
-                  🗑️ Ta bort
-                </Button>
+                  {!isNewTask && (
+                    <Button
+                      onClick={deleteTask}
+                      className="mt-4 bg-red-500"
+                    >
+                      🗑️ Ta bort
+                    </Button>
+                  )}
                 </div>
-
-                
               </>
             ) : (
               <>
@@ -301,10 +296,7 @@ const MyCalendar = ({ user }) => {
                 </h3>
                 {tasks[selectedDate.toISOString().split("T")[0]]?.map(
                   (task) => (
-                    <Card
-                      key={task.id}
-                      onClick={() => openTaskView(task)}
-                    >
+                    <Card key={task.id} onClick={() => openTaskView(task)}>
                       <p>
                         <strong>{task.task}</strong>{" "}
                         {task.activityTime && `- ${task.activityTime}`}

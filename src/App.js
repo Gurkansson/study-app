@@ -26,10 +26,10 @@ function App() {
 
     // För auth
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user); // 🧠 Sätt användaren
+      setUser(user);
     });
 
-    return () => unsubscribe(); // Avsluta listenern när komponenten tas bort
+    return () => unsubscribe(); 
   }, []);
 
   // Om inte inloggad, visa login

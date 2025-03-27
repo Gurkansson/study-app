@@ -71,29 +71,49 @@ button:hover {
   background-color: #e0e0e0;
 }
 
-
 body.dark {
-  background-color: #121212;
-  color: #f5f5f5;
+  background-color: #0d1b2a; /* djup mörkblå */
+  color: #f0f4f8;
 }
 
 .dark .app-header {
-  background-color: #1e1e1e;
+  background-color: #1b263b; /* lite ljusare blågrå */
 }
 
 .dark .popup, .dark .todo-container, .dark .calendar-wrapper {
-  background-color: #1e1e1e;
-  color: white;
+  background-color: #1b263b;
+  color: #f0f4f8;
+}
+
+
+
+body.dark .react-calendar {
+  background-color: #2f3e4e; /* ljusare än resten av dark mode */
+  border: none;
+  color: #f0f4f8;
 }
 
 body.dark .react-calendar__tile {
-  color: #fff;
+  background-color: #3a4a5a;
+  color: #ffffff;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
 }
 
-body.dark .react-calendar {
-  background-color: #1e1e1e;
-  border: none;
+body.dark .react-calendar__tile:hover {
+  background-color: #4a6072; /* lite ljusare vid hover */
 }
+
+body.dark .react-calendar__tile--now {
+  background: #5a7890 !important; /* dagens datum */
+  color: white !important;
+}
+
+body.dark .react-calendar__tile--active {
+  background: #6a90b0 !important; /* aktivt val */
+  color: white !important;
+}
+
 
 
 .theme-toggle {
