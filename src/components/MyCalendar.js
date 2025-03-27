@@ -34,7 +34,7 @@ const Input = (props) => (
 );
 
 const MyCalendar = ({ user }) => {
-  const [isNewTask, setIsNewTask] = useState(false); // ✅ NYTT: flyttad hit
+  const [isNewTask, setIsNewTask] = useState(false);
   const [activeStartDate, setActiveStartDate] = useState(new Date());
   const [date, setDate] = useState(new Date());
   const [tasks, setTasks] = useState({});
@@ -47,6 +47,12 @@ const MyCalendar = ({ user }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const calendarRef = useRef(null);
+
+  const formatDate = (date) => {
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
+    return adjustedDate.toISOString().split("T")[0];
+  };
 
   const goToToday = () => {
     const today = new Date();
@@ -132,8 +138,8 @@ const MyCalendar = ({ user }) => {
 
   const saveTask = async () => {
     if (!newTask.trim()) return;
+    const dateString = formatDate(selectedDate);
 
-    const dateString = selectedDate.toISOString().split("T")[0];
     const taskData = {
       task: newTask,
       date: dateString,
@@ -173,16 +179,14 @@ const MyCalendar = ({ user }) => {
             setActiveStartDate(activeStartDate)
           }
           onClickDay={(value) => {
-            const clickedDate = value.toISOString().split("T")[0];
-            if (tasks[clickedDate]) {
-              setSelectedDate(value);
-              setSelectedTask(null);
-              setShowPopup(true);
-              setIsNewTask(false);
-            }
+            const clickedDate = formatDate(value);
+            setSelectedDate(value);
+            setSelectedTask(null);
+            setShowPopup(true);
+            setIsNewTask(false);
           }}
-          tileContent={({ date, view }) => {
-            const formattedDate = date.toISOString().split("T")[0];
+          tileContent={({ date }) => {
+            const formattedDate = formatDate(date);
             const dayTasks = tasks[formattedDate];
             if (!dayTasks || dayTasks.length === 0) return null;
             return (
@@ -218,7 +222,7 @@ const MyCalendar = ({ user }) => {
                 </label>
                 <Input
                   type="date"
-                  value={selectedDate.toISOString().split("T")[0]}
+                  value={formatDate(selectedDate)}
                   onChange={(e) =>
                     setSelectedDate(new Date(e.target.value))
                   }
@@ -279,7 +283,7 @@ const MyCalendar = ({ user }) => {
                 <div className="flex justify-between">
                   <Button onClick={closeTaskView}>❌ Avbryt</Button>
                   <Button onClick={saveTask}>✔ Spara</Button>
-                  {!isNewTask && (
+                  {selectedTask && (
                     <Button
                       onClick={deleteTask}
                       className="mt-4 bg-red-500"
@@ -292,19 +296,17 @@ const MyCalendar = ({ user }) => {
             ) : (
               <>
                 <h3 className="text-2xl font-bold text-center mb-4">
-                  Uppgifter för {selectedDate.toISOString().split("T")[0]}
+                  Uppgifter för {formatDate(selectedDate)}
                 </h3>
-                {tasks[selectedDate.toISOString().split("T")[0]]?.map(
-                  (task) => (
-                    <Card key={task.id} onClick={() => openTaskView(task)}>
-                      <p>
-                        <strong>{task.task}</strong>{" "}
-                        {task.activityTime && `- ${task.activityTime}`}
-                        {task.reminderEnabled && <span> ⏰</span>}
-                      </p>
-                    </Card>
-                  )
-                )}
+                {tasks[formatDate(selectedDate)]?.map((task) => (
+                  <Card key={task.id} onClick={() => openTaskView(task)}>
+                    <p>
+                      <strong>{task.task}</strong>{" "}
+                      {task.activityTime && `- ${task.activityTime}`}
+                      {task.reminderEnabled && <span> ⏰</span>}
+                    </p>
+                  </Card>
+                ))}
                 <Button onClick={closeTaskView}>Stäng</Button>
               </>
             )}
