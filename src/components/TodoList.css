@@ -3,7 +3,7 @@
     border-radius: 15px;
     box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: 350px;
+    width: 90% !important;
     margin-top: 10px;
     margin-bottom: 30px;
 }
@@ -90,7 +90,7 @@ h2 {
         border-radius: 15px;
         box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
         padding: 25px;
-        width: 420px; /* Ökad bredd */
+        width: 90% !important;
         max-width: 90%; /* Säkerställer att den är responsiv */
     }
 
@@ -172,6 +172,9 @@ h2 {
 }
 
 .task-text {
+    font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
     flex: 1;  /* Gör så att texten fyller utrymmet */
     word-wrap: break-word;
 }
@@ -208,12 +211,14 @@ h2 {
     vertical-align: middle;
 }
 
-
-/*
-.todo-item .task-checkbox {
-    margin-left: auto;  Skjut checkboxen så långt till höger som möjligt 
-}*/
-
-
+.todo-item, .popup, .card {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .todo-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  }
+  
 
 

@@ -1,8 +1,7 @@
 // Importera Firebase-funktioner
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
-import { getToken } from "firebase/messaging";
+import { getMessaging, getToken } from "firebase/messaging";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Firebase-konfiguration
@@ -23,14 +22,14 @@ const messaging = getMessaging(app);
 const auth = getAuth(app); // Se till att bara deklarera auth en gång
 
 
-// Logga in användaren anonymt
 signInAnonymously(auth)
   .then(() => {
-    console.log("Anonym inloggning lyckades");
+    console.log("✅ Anonymt inloggad!");
   })
   .catch((error) => {
-    console.error("Fel vid anonym inloggning:", error);
+    console.error("❌ Inloggningsfel:", error);
   });
+
 
 
 // Exportera Firebase och Firestore

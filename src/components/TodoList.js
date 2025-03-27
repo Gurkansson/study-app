@@ -8,7 +8,7 @@ import { auth } from "../firebase";
 
 const pastellColors = ["#FFD1DC", "#FFECB3", "#C8E6C9", "#BBDEFB", "#E1BEE7"];
 
-const ToDoList = () => {
+const ToDoList = ({ user }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState("");
     const [selectedColor, setSelectedColor] = useState(pastellColors[0]);
@@ -16,12 +16,17 @@ const ToDoList = () => {
 
     const fetchTasks = async () => {
         const querySnapshot = await getDocs(collection(db, "todoList"));
-        const tasksList = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        setTasks(tasksList);
-    };
+        const loadedTasks = [];
+      
+        querySnapshot.forEach((doc) => {
+          const task = doc.data();
+          if (task.uid !== user.uid) return;
+          loadedTasks.push({ id: doc.id, ...task });
+        });
+      
+        setTasks(loadedTasks); // ✅ nu en array, fungerar med filter/map
+      };
+      
 
     useEffect(() => {
         fetchTasks();
@@ -34,8 +39,9 @@ const ToDoList = () => {
             const docRef = await addDoc(collection(db, "todoList"), {
                 text: newTask,
                 completed: false,
-                color: selectedColor
-            });
+                color: selectedColor,
+                uid: user.uid, // 🔐 koppla till användaren
+              });
             setTasks([...tasks, { id: docRef.id, text: newTask, completed: false, color: selectedColor }]);
             setNewTask("");
             setSelectedColor(pastellColors[0]);
