@@ -112,3 +112,15 @@
     text-overflow: ellipsis;
   }
   
+
+  .popup-overlay {
+    z-index: 50;
+  }
+  
+  .popup {
+    position: relative;
+    z-index: 100;
+    width: 100%;
+    max-width: 500px;
+  }
+  

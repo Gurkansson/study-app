@@ -2,36 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { db } from "../firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
-import "./Popup.css";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import "./CalendarPopup.css";
+import "./Calendar.css";
 
-const Button = ({ children, ...props }) => (
-  <button
-    {...props}
-    className="bg-blue-500 text-white py-3 px-6 rounded-lg text-lg shadow-md hover:bg-blue-600 transition-all"
-  >
+const Button = ({ children, className = '', ...props }) => (
+  <button {...props} className={`calendar-button ${className}`}>
     {children}
   </button>
 );
 
 const Card = ({ children, onClick }) => (
-  <div
-    className="bg-white shadow-lg rounded-xl p-4 mb-2 cursor-pointer hover:bg-gray-100 transition-all"
-    onClick={onClick}
-  >
+  <div className="calendar-card" onClick={onClick}>
     {children}
   </div>
 );
 
-const Input = (props) => (
-  <input {...props} className="border p-3 rounded-lg w-full text-lg" />
-);
+const Input = (props) => <input {...props} className="calendar-input" />;
 
 const MyCalendar = ({ user }) => {
   const [isNewTask, setIsNewTask] = useState(false);
@@ -163,153 +150,109 @@ const MyCalendar = ({ user }) => {
   };
 
   return (
-    <div className="p-10 bg-gray-100 min-h-screen flex flex-col items-center space-y-8">
-      <h2 className="text-3xl font-bold">Min Kalender</h2>
-      <div className="w-full max-w-8xl bg-white p-8 rounded-xl shadow-lg">
-        <div className="flex justify-between mb-6">
-          <Button onClick={goToToday}>📅 Idag</Button>
-          <Button onClick={() => openTaskView()}>➕ Ny</Button>
+    <div className="calendar-wrapper">
+      <h2>Min Kalender</h2>
+      <div className="calendar-content">
+        <div className="calendar-main">
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
+            <button className="calendar-button" onClick={goToToday}>📅 Idag</button>
+            <button className="calendar-button" onClick={() => openTaskView()}>➕ Ny</button>
+          </div>
+
+          <Calendar
+            onChange={setDate}
+            value={date}
+            activeStartDate={activeStartDate}
+            onActiveStartDateChange={({ activeStartDate }) => setActiveStartDate(activeStartDate)}
+            onClickDay={(value) => {
+              setSelectedDate(value);
+              setSelectedTask(null);
+              setIsNewTask(false);
+              setShowPopup(true);
+            }}
+            tileContent={({ date }) => {
+              const formattedDate = formatDate(date);
+              const dayTasks = tasks[formattedDate];
+              if (!dayTasks || dayTasks.length === 0) return null;
+              return (
+                <div className="calendar-tasks">
+                  {dayTasks.map((task, i) => (
+                    <div key={i} className="calendar-task-preview">
+                      {task.task?.slice(0, 6)}...
+                    </div>
+                  ))}
+                </div>
+              );
+            }}
+          />
         </div>
 
-        <Calendar
-          onChange={setDate}
-          value={date}
-          activeStartDate={activeStartDate}
-          onActiveStartDateChange={({ activeStartDate }) =>
-            setActiveStartDate(activeStartDate)
-          }
-          onClickDay={(value) => {
-            const clickedDate = formatDate(value);
-            setSelectedDate(value);
-            setSelectedTask(null);
-            setShowPopup(true);
-            setIsNewTask(false);
-          }}
-          tileContent={({ date }) => {
-            const formattedDate = formatDate(date);
-            const dayTasks = tasks[formattedDate];
-            if (!dayTasks || dayTasks.length === 0) return null;
-            return (
-              <div className="calendar-tasks">
-                {dayTasks.map((task, i) => (
-                  <div key={i} className="calendar-task-preview">
-                    {task.task?.slice(0, 6)}...
-                  </div>
-                ))}
-              </div>
-            );
-          }}
-        />
+        <div className="calendar-side">
+          <h3>📌 Kommande aktiviteter</h3>
+          {Object.keys(tasks)
+            .filter((dateStr) => new Date(dateStr) >= new Date())
+            .sort()
+            .slice(0, 5)
+            .map((dateStr) =>
+              tasks[dateStr].map((task) => (
+                <div key={task.id} className="calendar-card" onClick={() => openTaskView(task)}>
+                  <p className="font-semibold">{task.task}</p>
+                  <p className="text-sm text-gray-600">
+                    {dateStr} {task.activityTime && `kl ${task.activityTime}`}
+                  </p>
+                </div>
+              ))
+            )}
+          {Object.keys(tasks).filter((d) => new Date(d) >= new Date()).length === 0 && (
+            <p className="no-tasks">Inga planerade aktiviteter</p>
+          )}
+        </div>
       </div>
 
       {showPopup && (
-        <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="popup bg-white p-6 rounded-xl shadow-lg w-96">
-            {selectedTask || isNewTask ? (
-              <>
-                <h3 className="text-2xl font-bold text-center mb-4">
-                  {isNewTask ? "Ny uppgift" : "Redigera uppgift"}
-                </h3>
-
-                <label className="block text-lg font-semibold">Titel</label>
-                <Input
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                />
-
-                <label className="block text-sm font-medium text-gray-600">
-                  Start
-                </label>
-                <Input
-                  type="date"
-                  value={formatDate(selectedDate)}
-                  onChange={(e) =>
-                    setSelectedDate(new Date(e.target.value))
-                  }
-                />
-
-                <label className="block text-sm font-medium text-gray-600">
-                  Tid
-                </label>
-                <Input
-                  type="time"
-                  value={activityTime}
-                  onChange={(e) => setActivityTime(e.target.value)}
-                />
-
-                <div className="p-4 border border-gray-300 rounded-lg mb-4 bg-gray-100">
-                  <label className="block font-semibold text-lg">
-                    Påminnelse
-                  </label>
-                  <label className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      checked={reminderEnabled}
-                      onChange={() =>
-                        setReminderEnabled(!reminderEnabled)
-                      }
-                      className="mr-2"
-                    />
-                    Lägg till påminnelse
-                  </label>
-
-                  {reminderEnabled && (
-                    <>
-                      <label className="block text-sm text-gray-600">
-                        Påminnelsedatum
-                      </label>
-                      <Input
-                        type="date"
-                        value={reminderDate}
-                        onChange={(e) =>
-                          setReminderDate(e.target.value)
-                        }
-                      />
-
-                      <label className="block text-sm text-gray-600">
-                        Påminnelse klockslag
-                      </label>
-                      <Input
-                        type="time"
-                        value={reminderTime}
-                        onChange={(e) =>
-                          setReminderTime(e.target.value)
-                        }
-                      />
-                    </>
-                  )}
-                </div>
-
-                <div className="flex justify-between">
-                  <Button onClick={closeTaskView}>❌ Avbryt</Button>
-                  <Button onClick={saveTask}>✔ Spara</Button>
-                  {selectedTask && (
-                    <Button
-                      onClick={deleteTask}
-                      className="mt-4 bg-red-500"
-                    >
-                      🗑️ Ta bort
-                    </Button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="text-2xl font-bold text-center mb-4">
-                  Uppgifter för {formatDate(selectedDate)}
-                </h3>
-                {tasks[formatDate(selectedDate)]?.map((task) => (
-                  <Card key={task.id} onClick={() => openTaskView(task)}>
-                    <p>
-                      <strong>{task.task}</strong>{" "}
-                      {task.activityTime && `- ${task.activityTime}`}
-                      {task.reminderEnabled && <span> ⏰</span>}
-                    </p>
-                  </Card>
-                ))}
-                <Button onClick={closeTaskView}>Stäng</Button>
-              </>
-            )}
+        <div className="popup-overlay">
+          <div className="popup">
+            <button className="popup-close" onClick={closeTaskView}>×</button>
+            <h3>{isNewTask ? "Ny uppgift" : "Redigera uppgift"}</h3>
+            <div className="section">
+              <div className="section-title"><i className="fa-solid fa-pen"></i> Uppgift</div>
+              <div className="input-group">
+                <i className="fa-solid fa-heading"></i>
+                <input type="text" placeholder="Titel" value={newTask} onChange={(e) => setNewTask(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <i className="fa-solid fa-calendar-day"></i>
+                <input type="date" value={formatDate(selectedDate)} onChange={(e) => setSelectedDate(new Date(e.target.value))} />
+              </div>
+              <div className="input-group">
+                <i className="fa-solid fa-clock"></i>
+                <input type="time" value={activityTime} onChange={(e) => setActivityTime(e.target.value)} />
+              </div>
+            </div>
+            <div className="section">
+              <div className="section-title"><i className="fa-regular fa-bell"></i> Påminnelse</div>
+              <label className="checkbox-label">
+                <input type="checkbox" checked={reminderEnabled} onChange={() => setReminderEnabled(!reminderEnabled)} />
+                Lägg till påminnelse
+              </label>
+              {reminderEnabled && (
+                <>
+                  <div className="input-group">
+                    <i className="fa-solid fa-calendar-day"></i>
+                    <input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <i className="fa-solid fa-clock"></i>
+                    <input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} />
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="popup-buttons">
+              <button className="cancel-btn" onClick={closeTaskView}>Avbryt</button>
+              <button className="calendar-button" onClick={saveTask}>Spara</button>
+              {selectedTask && <button className="delete-btn" onClick={deleteTask}>Ta bort</button>}
+            </div>
           </div>
         </div>
       )}

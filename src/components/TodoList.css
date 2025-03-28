@@ -1,26 +1,30 @@
+/* === Container Styles === */
 .todo-container {
     background-color: white;
     border-radius: 15px;
     box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: 90% !important;
-    margin-top: 10px;
-    margin-bottom: 30px;
+    width: 100%;
+    max-width: 800px;       /* Anpassa efter önskad bredd */
+    margin: 40px auto;      /* Centrerar horisontellt och ger luft uppifrån */
+    box-sizing: border-box;
 }
 
-h2 {
+  
+  h2 {
     text-align: center;
     margin-bottom: 20px;
-}
-
-.container-header {
+  }
+  
+  /* === Header & Progress === */
+  .container-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;  /* Säkerställ att båda är vertikalt centrerade */
+    align-items: center;
     margin-bottom: 20px;
-}
-
-.progress-bar-container {
+  }
+  
+  .progress-bar-container {
     position: relative;
     width: 120px;
     height: 120px;
@@ -28,52 +32,70 @@ h2 {
     justify-content: center;
     align-items: center;
     margin-left: 50px;
-}
-
-.progress-bar-text {
+  }
+  
+  .circle-bg {
+    stroke: #e0e0e0;
+    stroke-width: 10;
+    fill: none;
+  }
+  
+  .circle-progress {
+    stroke: #2196f3;
+    stroke-width: 10;
+    fill: none;
+    stroke-dasharray: 314;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease-in-out;
+  }
+  
+  .progress-bar-text {
     position: absolute;
-    font-size: 20px;  /* Justera storleken på texten */
-    color: #2196F3;  /* Samma färg som progressbågen */
+    font-size: 20px;
+    color: #2196f3;
     font-weight: bold;
-}
-
-.text-below {
+  }
+  
+  .text-below {
     text-align: center;
-    margin-top: 10px;  /* Skapa mer mellanrum mellan progress-cirkeln och texten */
-}
-
-.add-task-container {
+    margin-top: 10px;
+  }
+  
+  /* === Add Task Button === */
+  .add-task-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-right: 50px;
-}
-
-.add-btn {
+  }
+  
+  .add-btn {
     background-color: #f0f4f8;
     color: white;
-    padding: 15px;  /* Öka storleken */
+    padding: 15px;
     border-radius: 50%;
-    font-size: 36px;  /* Gör ikonen större */
-    width: 70px;  /* Gör knappen större */
-    height: 70px;  /* Gör knappen större */
+    font-size: 36px;
+    width: 70px;
+    height: 70px;
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.add-btn:hover {
+    border: none;
+  }
+  
+  .add-btn:hover {
     background-color: #4a90e2;
-}
-
-.add-task-container .text-below {
-    margin-top: 20px;  /* Justera för att skapa ett större gap */
+  }
+  
+  .add-task-container .text-below {
+    margin-top: 20px;
     font-size: 14px;
-    color: #555;  /* Färgen på texten kan justeras beroende på önskemål */
+    color: #555;
     font-family: Arial, sans-serif;
-}
-
-.popup-overlay {
+  }
+  
+  /* === Popup === */
+  .popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -83,135 +105,98 @@ h2 {
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.popup {
-        background-color: white;
-        border-radius: 15px;
-        box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
-        padding: 25px;
-        width: 90% !important;
-        max-width: 90%; /* Säkerställer att den är responsiv */
-    }
-
-    .popup input {
-        width: 100%; /* Gör textfältet lika brett som popupen */
-        padding: 10px;
-        font-size: 16px;
-        box-sizing: border-box; /* Förhindrar att padding gör elementet bredare */
-    }
-
-.color-options {
+    z-index: 50;
+  }
+  
+  .popup {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    width: 90% !important;
+    max-width: 90%;
+    position: relative;
+    z-index: 100;
+  }
+  
+  .popup input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+  }
+  
+  /* === Color Options === */
+  .color-options {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-bottom: 15px;
-}
-
-.color-btn {
+  }
+  
+  .color-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     border: 1px solid #ddd;
-}
-
-.color-btn:hover {
+    cursor: pointer;
+  }
+  
+  .color-btn:hover {
     transform: scale(1.1);
-}
-
-.popup-buttons {
+  }
+  
+  .color-btn.active {
+    border: 2px solid #333;
+  }
+  
+  /* === Popup Buttons === */
+  .popup-buttons {
     display: flex;
     justify-content: space-between;
-}
-
-.popup-buttons button {
+  }
+  
+  .popup-buttons button {
     width: 45%;
     padding: 10px;
-    background-color:#f0f4f8; /* Samma grundfärg */
+    background-color: #f0f4f8;
     color: #357ABD;
     border: none;
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.popup-buttons button:hover {
-    background-color:#4a90e2; /* Mörkare blå vid hover */
-}
-
-.save-btn {
+  }
+  
+  .popup-buttons button:hover {
+    background-color: #4a90e2;
+  }
+  
+  .save-btn {
     background-color: #4a90e2;
     color: white;
-}
-
-.cancel-btn {
+  }
+  
+  .cancel-btn {
     background-color: #e0e0e0;
-}
-
-.popup-overlay + .todo-list {
-    pointer-events: none; /* Gör att listan inte kan klickas när pop-up är aktiv */
-    opacity: 0.5; /* Gör listan lite suddig */
-}
-
-
-.todo-list {
+  }
+  
+  /* === Todo List === */
+  .todo-list {
     list-style-type: none;
     padding: 0;
     margin-top: 10px;
-}
-
-.todo-item {
+  }
+  
+  .todo-item {
     display: flex;
-    justify-content: space-between;  /* Se till att innehållet är ordnat på rätt sätt */
+    justify-content: space-between;
     align-items: center;
     padding: 15px;
     background-color: #f9f9f9;
     border-radius: 8px;
     margin: 5px 0;
-}
-
-.task-text {
-    font-size: 16px;
-  line-height: 1.4;
-  font-weight: 500;
-    flex: 1;  /* Gör så att texten fyller utrymmet */
-    word-wrap: break-word;
-}
-
-.task-checkbox {
-    order: 1;  /* Gör så att checkboxen kommer först */
-    margin-right: 10px;  /* Litet mellanrum mellan checkbox och text */
-}
-
-.task-checkbox {
-    margin-right: 10px;
-}
-
-.delete-btn {
-    order: 2;  /* Gör så att delete-knappen kommer sist */
-    background-color: transparent;  /* Inget bakgrundsfärg */
-    border: none;
-    color: red;
-    font-size: 18px;  /* Större fontstorlek om det behövs */
-    padding: 0;  /* Ta bort all padding */
-    margin-left: 10px;  /* Litet mellanrum mellan delete-knappen och texten */
-    width: auto;  /* Se till att bredden är justerbar beroende på innehåll */
-    height: auto;  /* Se till att höjden är justerbar beroende på innehåll */
-    display: flex;
-    justify-content: center;  /* Se till att krysset är centrerat */
-    align-items: center;  /* Centrerar även på vertikal nivå */
-}
-
-
-/* Justera så att både checkbox och delete-knapp placeras på samma rad */
-.todo-item .task-checkbox,
-.todo-item .delete-btn {
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.todo-item, .popup, .card {
     transition: all 0.2s ease-in-out;
   }
   
@@ -220,5 +205,44 @@ h2 {
     box-shadow: 0 6px 12px rgba(0,0,0,0.1);
   }
   
-
-
+  .task-text {
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 500;
+    flex: 1;
+    word-wrap: break-word;
+  }
+  
+  .task-checkbox {
+    margin-right: 10px;
+  }
+  
+  .delete-btn {
+    background-color: transparent;
+    border: none;
+    color: red;
+    font-size: 18px;
+    padding: 0;
+    margin-left: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .todo-item .task-checkbox,
+  .todo-item .delete-btn {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  
+  /* === Study Tip === */
+  .study-tip-card {
+    background-color: #f5f5f5;
+    border-left: 6px solid #2196F3;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 12px;
+    font-style: italic;
+  }
+  
