@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-
+import "./Login.css";
 
 const Login = ({ onLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -11,74 +14,72 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
- 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-  
+
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-  
-      // användardokument om det inte finns
+
       const userRef = doc(db, "users", auth.currentUser.uid);
       const userSnap = await getDoc(userRef);
       if (!userSnap.exists()) {
         await setDoc(userRef, { darkMode: false });
       }
-  
-      onLogin(); // När inloggning lyckas
+
+      onLogin();
     } catch (err) {
-      setError(err.message);
+      setError("🚫 " + err.message);
     }
   };
-  
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          {isRegistering ? "Skapa konto" : "Logga in"}
+    <div className="login-container">
+      <div className="login-box animated-pop">
+        <h2 className="login-title">
+          {isRegistering ? "🚀 Skapa konto" : "🔐 Logga in"}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="E-post"
-            className="w-full p-3 border rounded-lg"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Lösenord"
-            className="w-full p-3 border rounded-lg"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="input-group">
+            <label>E-post</label>
+            <input
+              type="email"
+              placeholder="Din e-postadress"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
-          >
-            {isRegistering ? "Registrera" : "Logga in"}
+          <div className="input-group">
+            <label>Lösenord</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && <p className="login-error">{error}</p>}
+
+          <button type="submit" className="login-button">
+            {isRegistering ? "Skapa konto" : "Logga in"}
           </button>
         </form>
-        <div className="text-center mt-4">
-          <button
-            className="text-blue-500 underline"
-            onClick={() => setIsRegistering(!isRegistering)}
-          >
-            {isRegistering
-              ? "Har du redan ett konto? Logga in"
-              : "Skapa nytt konto"}
-          </button>
+
+        <div className="login-toggle">
+          <span>
+            {isRegistering ? "Redan medlem?" : "Inget konto?"}{" "}
+            <button onClick={() => setIsRegistering(!isRegistering)}>
+              {isRegistering ? "Logga in" : "Registrera dig"}
+            </button>
+          </span>
         </div>
       </div>
     </div>
